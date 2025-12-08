@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
 import { supabase } from '@/utils/supabase-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { User, Session } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
+import { useEffect, useState } from 'react';
 
 interface AuthState {
   user: User | null;
@@ -115,6 +115,19 @@ export function useAuth() {
       }
 
       if (data.session && data.user) {
+        // Restrict access to Admin only
+        const department = (data.user.user_metadata?.department || '').toLowerCase();
+        if (department !== 'admin') {
+          await supabase.auth.signOut();
+          setAuthState({
+            user: null,
+            loading: false,
+            error: 'Access restricted to Admin only.',
+            isAuthenticated: false,
+          });
+          return { success: false, error: 'Access restricted to Admin only.' };
+        }
+
         // Generate session ID (format: SESS-{digit}{3 letters})
         const sessionId = generateSessionId();
         await AsyncStorage.setItem('session_id', sessionId);
@@ -129,6 +142,14 @@ export function useAuth() {
         } catch (e) {
           // Ignore errors
         }
+
+        // Debug log of signed-in user (non-sensitive snapshot)
+        console.log('Login success', {
+          userId: data.user.id,
+          email: data.user.email,
+          department: data.user.user_metadata?.department,
+          sessionId,
+        });
 
         setAuthState({
           user: data.user,
@@ -162,6 +183,9 @@ export function useAuth() {
         setAuthState((prev) => ({ ...prev, error: error.message }));
         return { success: false, error: error.message };
       }
+
+      // Clear any remaining stored data for safety
+      await AsyncStorage.clear();
 
       setAuthState({
         user: null,

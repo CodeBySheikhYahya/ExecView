@@ -1,13 +1,15 @@
 import ActivityTypeDropdown from '@/components/ActivityTypeDropdown';
+import { AppFooter } from '@/components/AppFooter';
+import { AppHeader } from '@/components/AppHeader';
 import EntDropdown from '@/components/EntDropdown';
 import NewAccountList from '@/components/NewAccountList';
 import RedeemList from '@/components/RedeemList';
 import RequestList from '@/components/RequestList';
 import ResetPasswordList from '@/components/ResetPasswordList';
 import StatusTabs from '@/components/StatusTabs';
-import TransferList from '@/components/TransferList';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import TransferList from '@/components/TransferList';
 import { useEnts } from '@/hooks/useEnts';
 import { useNewAccountData } from '@/hooks/useNewAccountData';
 import { usePendingCount } from '@/hooks/usePendingCount';
@@ -17,7 +19,7 @@ import { useResetPasswordData } from '@/hooks/useResetPasswordData';
 import { useTransferData } from '@/hooks/useTransferData';
 import { getTeamId } from '@/utils/team-helper';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 type ActivityTabType = 'Recharge' | 'Redeem' | 'Transfer' | 'Reset Password' | 'New Account';
 type StatusTabType = 'Pending' | 'Completed' | 'Rejected';
@@ -222,34 +224,34 @@ export default function RechargeScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <ThemedText style={styles.headerText}>User Activity</ThemedText>
-      </ThemedView>
-      
-      <ThemedView style={styles.dropdownsContainer}>
-        {!entsLoading && ents.length > 0 && (
+      <AppHeader title="Activity" />
+      <View style={styles.content}>
+        <ThemedView style={styles.dropdownsContainer}>
+          {!entsLoading && ents.length > 0 && (
+            <ThemedView style={styles.dropdownWrapper}>
+              <EntDropdown ents={ents} selectedEnt={selectedEnt} onEntChange={setSelectedEnt} />
+            </ThemedView>
+          )}
           <ThemedView style={styles.dropdownWrapper}>
-            <EntDropdown ents={ents} selectedEnt={selectedEnt} onEntChange={setSelectedEnt} />
+            <ActivityTypeDropdown selectedTab={selectedTab} onTabChange={setSelectedTab} />
+          </ThemedView>
+        </ThemedView>
+
+        <StatusTabs
+          selectedTab={getCurrentStatus() as StatusTabType}
+          onTabChange={handleStatusChange}
+          hideRejected={selectedTab === 'Reset Password' || selectedTab === 'New Account'}
+          pendingCount={pendingCount}
+        />
+        {/* Debug info */}
+        {__DEV__ && (
+          <ThemedView style={{ padding: 10, backgroundColor: '#f0f0f0' }}>
+            <ThemedText style={{ fontSize: 12 }}>Debug: pendingCount = {pendingCount}</ThemedText>
           </ThemedView>
         )}
-        <ThemedView style={styles.dropdownWrapper}>
-          <ActivityTypeDropdown selectedTab={selectedTab} onTabChange={setSelectedTab} />
-        </ThemedView>
-      </ThemedView>
-
-      <StatusTabs 
-        selectedTab={getCurrentStatus() as StatusTabType} 
-        onTabChange={handleStatusChange}
-        hideRejected={selectedTab === 'Reset Password' || selectedTab === 'New Account'}
-        pendingCount={pendingCount}
-      />
-      {/* Debug info */}
-      {__DEV__ && (
-        <ThemedView style={{ padding: 10, backgroundColor: '#f0f0f0' }}>
-          <ThemedText style={{ fontSize: 12 }}>Debug: pendingCount = {pendingCount}</ThemedText>
-        </ThemedView>
-      )}
-      {renderContent()}
+        {renderContent()}
+      </View>
+      <AppFooter />
     </ThemedView>
   );
 }
@@ -257,16 +259,10 @@ export default function RechargeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#ffffff',
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#000',
+  content: {
+    flex: 1,
   },
   dropdownsContainer: {
     flexDirection: 'row',

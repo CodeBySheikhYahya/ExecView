@@ -1,3 +1,4 @@
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppFooter } from '@/components/AppFooter';
@@ -5,12 +6,12 @@ import { AppHeader } from '@/components/AppHeader';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
-export default function HomeScreen() {
+export default function StatusScreen() {
   return (
     <ThemedView style={styles.container}>
-      <AppHeader title="Dashboard" />
+      <AppHeader title="Status" />
       <View style={styles.content}>
-        <ThemedText style={styles.subtitle}>No data yet.</ThemedText>
+        <ThemedText style={styles.message}>App status coming soon.</ThemedText>
       </View>
       <AppFooter />
     </ThemedView>
@@ -22,15 +23,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
-  subtitle: {
-    opacity: 0.6,
-    textAlign: 'center',
-    color: '#0b1a3a',
-  },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
   },
+  message: {
+    color: '#0b1a3a',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
+
+

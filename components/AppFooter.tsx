@@ -18,6 +18,7 @@ export function AppFooter() {
   const pathname = usePathname();
   const colorScheme = useColorScheme();
   const activeColor = Colors[colorScheme ?? 'light'].tint;
+  const inactiveColor = '#6b7280';
 
   return (
     <View style={styles.container}>
@@ -31,7 +32,7 @@ export function AppFooter() {
             <Ionicons
               name={item.icon as any}
               size={22}
-              color={isActive ? activeColor : '#6b7280'}
+              color={isActive ? activeColor : inactiveColor}
             />
           </TouchableOpacity>
         );
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
   },
   navItem: {
     padding: 8,

@@ -11,7 +11,7 @@ export default function StatusScreen() {
     <ThemedView style={styles.container}>
       <AppHeader title="Status" />
       <View style={styles.content}>
-        <ThemedText>App status coming soon.</ThemedText>
+        <ThemedText style={styles.message}>App status coming soon.</ThemedText>
       </View>
       <AppFooter />
     </ThemedView>
@@ -21,12 +21,18 @@ export default function StatusScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#ffffff',
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
+  },
+  message: {
+    color: '#0b1a3a',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

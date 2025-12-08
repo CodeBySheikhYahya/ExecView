@@ -20,10 +20,12 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#ffffff',
   },
   subtitle: {
     opacity: 0.6,
     textAlign: 'center',
+    color: '#0b1a3a',
   },
   content: {
     flex: 1,

@@ -11,7 +11,7 @@ export default function BotScreen() {
     <ThemedView style={styles.container}>
       <AppHeader title="Bot" />
       <View style={styles.content}>
-        <ThemedText>Bot workspace coming soon.</ThemedText>
+        <ThemedText style={styles.message}>Bot workspace coming soon.</ThemedText>
       </View>
       <AppFooter />
     </ThemedView>
@@ -21,12 +21,18 @@ export default function BotScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#ffffff',
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
+  },
+  message: {
+    color: '#0b1a3a',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

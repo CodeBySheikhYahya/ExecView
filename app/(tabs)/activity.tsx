@@ -1,5 +1,5 @@
-import UserActivityScreen from '@/screens/UserActivityScreen';
+import RechargeScreen from '@/screens/RechargeScreen';
 
-export default UserActivityScreen;
+export default RechargeScreen;
 
 

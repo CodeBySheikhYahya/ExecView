@@ -1,11 +1,6 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from '@/constants/supabase-credentials';
-import { createClient } from '@supabase/supabase-js';
 import { StyleSheet } from 'react-native';
-
-// Initialize Supabase client
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function RedeemScreen() {
   return (
@@ -23,4 +18,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
 

@@ -38,3 +38,4 @@ export function useTeamId(teamCode: string | null) {
   return { teamId, loading };
 }
 
+

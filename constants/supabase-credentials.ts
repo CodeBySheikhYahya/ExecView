@@ -1,0 +1,7 @@
+export const SUPABASE_URL = "https://qrjaavsmkbhzmxnylwfx.supabase.co";
+export const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFyamFhdnNta2Joem14bnlsd2Z4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIxNDQ4NjUsImV4cCI6MjA2NzcyMDg2NX0.UTAMZRRe4H7LessU_nmn80ISJKOaS7NlSjqMmc71zuo";
+export const SUPABASE_SERVICE_ROLE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFyamFhdnNta2Joem14bnlsd2Z4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjE0NDg2NSwiZXhwIjoyMDY3NzIwODY1fQ.MHZ-wujcuSQ9YpizMVcf-PSkmxteTLAk2c3seBUIuJc";
+export const SUPABASE_DB_PASSWORD = "aDMoN8DvnwjPKDs2";
+export const SUPABASE_READ_REPLICA = `postgresql://postgres:aDMoN8DvnwjPKDs2@db.qrjaavsmkbhzmxnylwfx-rr-us-east-2-boedb.supabase.co:5432/postgres`;

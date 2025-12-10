@@ -54,6 +54,10 @@ export interface RechargeRequest {
       team_code: string | null;
     } | null;
   } | null;
+  payment_methods?: {
+    payment_method: string | null;
+    payment_icon: string | null;
+  } | null;
 }
 
 type TabStatus = 'Pending' | 'Completed' | 'Rejected';
@@ -78,6 +82,10 @@ export function useRechargeData(selectedTab: TabStatus, teamId: string | null = 
               teams!team_id (
                 team_code
               )
+            ),
+            payment_methods:payment_method_id (
+              payment_method,
+              payment_icon
             )
           `);
 

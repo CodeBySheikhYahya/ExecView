@@ -1,5 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Modal, StyleSheet, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { Modal, ScrollView, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
@@ -17,9 +18,9 @@ export default function EntDropdown({ ents, selectedEnt, onEntChange }: EntDropd
       <TouchableOpacity
         style={styles.dropdownButton}
         onPress={() => setIsOpen(true)}
-        activeOpacity={0.7}>
+        activeOpacity={0.8}>
         <ThemedText style={styles.dropdownButtonText}>{selectedEnt}</ThemedText>
-        <ThemedText style={styles.arrow}>▼</ThemedText>
+        <Ionicons name="chevron-down" size={18} color="#6b7280" />
       </TouchableOpacity>
 
       <Modal
@@ -31,26 +32,35 @@ export default function EntDropdown({ ents, selectedEnt, onEntChange }: EntDropd
           <ThemedView style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <ThemedView style={styles.modalContent}>
-                {ents.map((ent) => (
-                  <TouchableOpacity
-                    key={ent}
-                    style={[
-                      styles.dropdownItem,
-                      selectedEnt === ent && styles.dropdownItemSelected,
-                    ]}
-                    onPress={() => {
-                      onEntChange(ent);
-                      setIsOpen(false);
-                    }}>
-                    <ThemedText
+                <ScrollView contentContainerStyle={styles.listContent}>
+                  {ents.map((ent, idx) => (
+                    <TouchableOpacity
+                      key={ent}
                       style={[
-                        styles.dropdownItemText,
-                        selectedEnt === ent && styles.dropdownItemTextSelected,
-                      ]}>
-                      {ent}
-                    </ThemedText>
+                        styles.dropdownItem,
+                        idx === 0 && styles.firstItem,
+                        idx === ents.length - 1 && styles.lastItem,
+                        selectedEnt === ent && styles.dropdownItemSelected,
+                      ]}
+                      onPress={() => {
+                        onEntChange(ent);
+                        setIsOpen(false);
+                      }}>
+                      <ThemedText
+                        style={[
+                          styles.dropdownItemText,
+                          selectedEnt === ent && styles.dropdownItemTextSelected,
+                        ]}>
+                        {ent}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+                <View style={styles.footer}>
+                  <TouchableOpacity style={styles.cancelBtn} onPress={() => setIsOpen(false)}>
+                    <ThemedText style={styles.cancelText}>Cancel</ThemedText>
                   </TouchableOpacity>
-                ))}
+                </View>
               </ThemedView>
             </TouchableWithoutFeedback>
           </ThemedView>
@@ -65,58 +75,99 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    backgroundColor: '#fff',
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    backgroundColor: '#ffffff',
     minWidth: 120,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   dropdownButtonText: {
-    fontSize: 16,
-    color: '#000',
-    fontWeight: '500',
-  },
-  arrow: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 8,
+    fontSize: 15,
+    color: '#111827',
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'flex-end',
     alignItems: 'center',
+    paddingHorizontal: 0,
+    paddingBottom: 0,
   },
   modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    minWidth: 200,
-    maxHeight: 400,
-    paddingVertical: 8,
+    width: '100%',
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 12,
+    paddingBottom: 8,
+    maxHeight: 520,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 20,
+  },
+  listContent: {
+    paddingBottom: 12,
   },
   dropdownItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#f3f4f6',
+    backgroundColor: '#ffffff',
+  },
+  firstItem: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  lastItem: {
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    borderBottomWidth: 0,
   },
   dropdownItemSelected: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: '#f0f9ff',
   },
   dropdownItemText: {
     fontSize: 16,
-    color: '#000',
+    color: '#374151',
+    fontWeight: '500',
   },
   dropdownItemTextSelected: {
+    fontWeight: '700',
+    color: '#2563eb',
+  },
+  footer: {
+    paddingTop: 8,
+    paddingBottom: 12,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+    alignItems: 'center',
+  },
+  cancelBtn: {
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    width: '100%',
+    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: '#f9fafb',
+  },
+  cancelText: {
+    color: '#6b7280',
+    fontSize: 16,
     fontWeight: '600',
-    color: '#1976d2',
+    letterSpacing: 0.3,
   },
 });
 

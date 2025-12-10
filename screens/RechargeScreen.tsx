@@ -114,7 +114,13 @@ export default function RechargeScreen() {
           </ThemedView>
         );
       }
-      return <RequestList data={rechargeData.data} />;
+      return (
+        <RequestList
+          data={rechargeData.data}
+          showStatus={selectedStatus === 'Pending' || selectedStatus === 'Rejected'}
+          showCompletedTime={selectedStatus === 'Completed'}
+        />
+      );
     }
 
     if (selectedTab === 'Redeem') {
@@ -226,16 +232,16 @@ export default function RechargeScreen() {
     <ThemedView style={styles.container}>
       <AppHeader title="Activity" />
       <View style={styles.content}>
-        <ThemedView style={styles.dropdownsContainer}>
+        <View style={styles.dropdownsContainer}>
           {!entsLoading && ents.length > 0 && (
-            <ThemedView style={styles.dropdownWrapper}>
+            <View style={styles.dropdownWrapper}>
               <EntDropdown ents={ents} selectedEnt={selectedEnt} onEntChange={setSelectedEnt} />
-            </ThemedView>
+            </View>
           )}
-          <ThemedView style={styles.dropdownWrapper}>
+          <View style={styles.dropdownWrapper}>
             <ActivityTypeDropdown selectedTab={selectedTab} onTabChange={setSelectedTab} />
-          </ThemedView>
-        </ThemedView>
+          </View>
+        </View>
 
         <StatusTabs
           selectedTab={getCurrentStatus() as StatusTabType}
@@ -243,12 +249,6 @@ export default function RechargeScreen() {
           hideRejected={selectedTab === 'Reset Password' || selectedTab === 'New Account'}
           pendingCount={pendingCount}
         />
-        {/* Debug info */}
-        {__DEV__ && (
-          <ThemedView style={{ padding: 10, backgroundColor: '#f0f0f0' }}>
-            <ThemedText style={{ fontSize: 12 }}>Debug: pendingCount = {pendingCount}</ThemedText>
-          </ThemedView>
-        )}
         {renderContent()}
       </View>
       <AppFooter />
@@ -263,11 +263,12 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    backgroundColor: '#ffffff',
   },
   dropdownsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
     gap: 12,
     justifyContent: 'space-between',
   },

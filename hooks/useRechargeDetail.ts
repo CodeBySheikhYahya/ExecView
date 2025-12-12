@@ -59,7 +59,6 @@ export function useRechargeDetail(id: string) {
 
       try {
         setLoading(true);
-        console.log('[useRechargeDetail] Fetching recharge detail for ID:', id);
 
         const { data: rechargeData, error: fetchError } = await supabaseRead
           .from('recharge_requests')
@@ -106,13 +105,8 @@ export function useRechargeDetail(id: string) {
           .single();
 
         if (fetchError) {
-          console.error('[useRechargeDetail] Query error:', fetchError);
           throw fetchError;
         }
-
-        console.log('[useRechargeDetail] ===== RECHARGE DETAIL =====');
-        console.log('[useRechargeDetail] Full API Response:', JSON.stringify(rechargeData, null, 2));
-        console.log('[useRechargeDetail] ===========================');
 
         // Add readable status to the data
         const dataWithStatus = {
@@ -122,7 +116,6 @@ export function useRechargeDetail(id: string) {
 
         setData(dataWithStatus as any);
       } catch (err) {
-        console.error('[useRechargeDetail] Error:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch recharge detail'));
       } finally {
         setLoading(false);

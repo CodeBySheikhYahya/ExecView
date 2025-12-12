@@ -8,7 +8,6 @@ export function useEnts() {
 
   useEffect(() => {
     async function fetchEnts() {
-      console.log('[useEnts] Fetching ENTs from database...');
       try {
         setLoading(true);
         
@@ -18,18 +17,14 @@ export function useEnts() {
           .order('created_at', { ascending: true });
 
         if (fetchError) {
-          console.error('[useEnts] Error fetching teams:', fetchError);
           throw fetchError;
         }
 
-        console.log('[useEnts] Raw teams data:', teamsData);
         const teamCodes = teamsData?.map((team) => team.team_code?.toUpperCase()).filter((code): code is string => !!code) || [];
         const allEnts = ['ALL', ...teamCodes];
         
-        console.log('[useEnts] Processed ENTs:', allEnts);
         setEnts(allEnts);
       } catch (err) {
-        console.error('[useEnts] Error:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch ENTs'));
       } finally {
         setLoading(false);

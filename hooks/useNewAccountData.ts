@@ -35,7 +35,6 @@ export function useNewAccountData(selectedTab: TabStatus, teamId: string | null 
 
   useEffect(() => {
     async function fetchData() {
-      console.log('[useNewAccountData] Fetching data - selectedTab:', selectedTab, 'teamId:', teamId);
       try {
         setLoading(true);
         
@@ -63,24 +62,18 @@ export function useNewAccountData(selectedTab: TabStatus, teamId: string | null 
           .eq('process_status', statusFilter);
 
         if (teamId) {
-          console.log('[useNewAccountData] Applying team_id filter:', teamId);
           query = query.eq('team_id', teamId);
-        } else {
-          console.log('[useNewAccountData] No team_id filter (showing all teams)');
         }
 
         const { data: newAccountData, error: fetchError } = await query
           .order('created_at', { ascending: false });
 
         if (fetchError) {
-          console.error('[useNewAccountData] Query error:', fetchError);
           throw fetchError;
         }
 
-        console.log('[useNewAccountData] Fetched', newAccountData?.length || 0, 'records');
         setData(newAccountData || []);
       } catch (err) {
-        console.error('[useNewAccountData] Error:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch new account data'));
       } finally {
         setLoading(false);

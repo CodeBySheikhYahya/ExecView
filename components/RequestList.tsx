@@ -12,10 +12,6 @@ interface RequestListProps {
 }
 
 export default function RequestList({ data, showStatus = false, showCompletedTime = false }: RequestListProps) {
-  console.log('[RequestList] ===== RECHARGE LIST RENDER =====');
-  console.log('[RequestList] Received data array length:', data.length);
-  console.log('[RequestList] Data IDs:', data.map(item => item.id));
-  console.log('[RequestList] =================================');
   const router = useRouter();
 
   const formatDate = (dateString: string | null) => {

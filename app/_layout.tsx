@@ -23,23 +23,11 @@ export default function RootLayout() {
     const inAuthGroup = segments[0] === 'auth';
 
     if (!isAuthenticated && !inAuthGroup) {
-      // Redirect to sign in if not authenticated
+      // Redirect to sign in if not authenticated (except auth pages)
       router.replace('/auth/signin');
     } else if (isAuthenticated && inAuthGroup) {
-      // Redirect based on department if authenticated
-      const department = user?.user_metadata?.department || 'admin';
-      const departmentRoutes: Record<string, string> = {
-        support: '/(tabs)/recharge',
-        verification: '/(tabs)/recharge',
-        operation: '/(tabs)/recharge',
-        finance: '/(tabs)/recharge',
-        admin: '/(tabs)',
-        executive: '/(tabs)',
-        monitoring: '/(tabs)/recharge',
-        qa: '/(tabs)',
-      };
-      const route = departmentRoutes[department] || '/(tabs)';
-      router.replace(route as any);
+      // After login, go to dashboard by default
+      router.replace('/dashboard');
     }
   }, [isAuthenticated, loading, segments]);
 
@@ -48,6 +36,7 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="auth/signin" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="dashboard" options={{ headerShown: false }} />
         <Stack.Screen name="transaction/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="redeem/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />

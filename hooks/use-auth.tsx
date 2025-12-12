@@ -25,8 +25,12 @@ export function useAuth() {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
+        // Store access token for API calls (always update on session change)
+        if (session.access_token) {
+          await AsyncStorage.setItem('auth_token', session.access_token);
+        }
         setAuthState({
           user: session.user,
           loading: false,
@@ -34,14 +38,17 @@ export function useAuth() {
           isAuthenticated: true,
         });
       } else {
+        // Only clear tokens on explicit sign out events, not on initialization or token refresh
+        if (event === 'SIGNED_OUT') {
+          await AsyncStorage.removeItem('session_id');
+          await AsyncStorage.removeItem('auth_token');
+        }
         setAuthState({
           user: null,
           loading: false,
           error: null,
           isAuthenticated: false,
         });
-        // Clear session ID when logged out
-        AsyncStorage.removeItem('session_id');
       }
     });
 
@@ -65,6 +72,10 @@ export function useAuth() {
       }
 
       if (session) {
+        // Store access token for API calls
+        if (session.access_token) {
+          await AsyncStorage.setItem('auth_token', session.access_token);
+        }
         setAuthState({
           user: session.user,
           loading: false,
@@ -128,6 +139,11 @@ export function useAuth() {
           return { success: false, error: 'Access restricted to Admin only.' };
         }
 
+        // Store access token for API calls (save immediately after successful login)
+        if (data.session.access_token) {
+          await AsyncStorage.setItem('auth_token', data.session.access_token);
+        }
+
         // Generate session ID (format: SESS-{digit}{3 letters})
         const sessionId = generateSessionId();
         await AsyncStorage.setItem('session_id', sessionId);
@@ -142,14 +158,6 @@ export function useAuth() {
         } catch (e) {
           // Ignore errors
         }
-
-        // Debug log of signed-in user (non-sensitive snapshot)
-        console.log('Login success', {
-          userId: data.user.id,
-          email: data.user.email,
-          department: data.user.user_metadata?.department,
-          sessionId,
-        });
 
         setAuthState({
           user: data.user,
@@ -177,6 +185,7 @@ export function useAuth() {
   const signOut = async () => {
     try {
       await AsyncStorage.removeItem('session_id');
+      await AsyncStorage.removeItem('auth_token');
       const { error } = await supabase.auth.signOut();
       
       if (error) {

@@ -13,10 +13,8 @@ export function usePendingCount(activityType: ActivityType, selectedEnt: string 
     async function fetchCount() {
       try {
         setLoading(true);
-        console.log('[usePendingCount] Fetching count for:', activityType, 'ENT:', selectedEnt);
         
         const teamId = selectedEnt === 'ALL' ? null : await getTeamId(selectedEnt);
-        console.log('[usePendingCount] Team ID:', teamId);
         
         let query;
         
@@ -87,34 +85,21 @@ export function usePendingCount(activityType: ActivityType, selectedEnt: string 
         }
 
         const response = await query;
-        
-        console.log('[usePendingCount] ===== FULL QUERY RESPONSE =====');
-        console.log('[usePendingCount] Response:', response);
-        console.log('[usePendingCount] Response count:', response.count);
-        console.log('[usePendingCount] Response error:', response.error);
-        console.log('[usePendingCount] Response data length:', response.data?.length);
-        console.log('[usePendingCount] ================================');
 
         if (response.error) {
-          console.error('[usePendingCount] Query error:', response.error);
           // Fallback: count the data array if count is not available
           if (response.data) {
             dataCount = response.data.length;
-            console.log('[usePendingCount] Using fallback count from data array:', dataCount);
           } else {
             dataCount = 0;
           }
         } else {
           // Use count if available, otherwise count data array
           dataCount = response.count ?? (response.data?.length || 0);
-          console.log('[usePendingCount] Success! Count:', dataCount);
         }
 
-        console.log('[usePendingCount] Final count to set:', dataCount);
         setCount(dataCount);
-        console.log('[usePendingCount] Count state set complete');
       } catch (err) {
-        console.error('[usePendingCount] Exception:', err);
         setCount(0);
       } finally {
         setLoading(false);
@@ -123,13 +108,6 @@ export function usePendingCount(activityType: ActivityType, selectedEnt: string 
 
     fetchCount();
   }, [activityType, selectedEnt]);
-
-  useEffect(() => {
-    console.log('[usePendingCount] ===== STATE UPDATE =====');
-    console.log('[usePendingCount] Current count state:', count);
-    console.log('[usePendingCount] Current loading state:', loading);
-    console.log('[usePendingCount] ========================');
-  }, [count, loading]);
 
   return { count, loading };
 }

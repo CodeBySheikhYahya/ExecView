@@ -20,12 +20,6 @@ export default function RedeemDetailScreen() {
   const router = useRouter();
   const { data, loading, error } = useRedeemDetail(params.id || '');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  
-  useEffect(() => {
-    if (data) {
-      console.log('[RedeemDetail] Data:', JSON.stringify(data, null, 2));
-    }
-  }, [data]);
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';

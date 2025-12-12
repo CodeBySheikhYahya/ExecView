@@ -42,7 +42,6 @@ export function useResetPasswordData(selectedTab: TabStatus, teamId: string | nu
 
   useEffect(() => {
     async function fetchData() {
-      console.log('[useResetPasswordData] Fetching data - selectedTab:', selectedTab, 'teamId:', teamId);
       try {
         setLoading(true);
         
@@ -70,24 +69,18 @@ export function useResetPasswordData(selectedTab: TabStatus, teamId: string | nu
           .eq('process_status', statusFilter);
 
         if (teamId) {
-          console.log('[useResetPasswordData] Applying team_id filter:', teamId);
           query = query.eq('team_id', teamId);
-        } else {
-          console.log('[useResetPasswordData] No team_id filter (showing all teams)');
         }
 
         const { data: resetPasswordData, error: fetchError } = await query
           .order('created_at', { ascending: false });
 
         if (fetchError) {
-          console.error('[useResetPasswordData] Query error:', fetchError);
           throw fetchError;
         }
 
-        console.log('[useResetPasswordData] Fetched', resetPasswordData?.length || 0, 'records');
         setData(resetPasswordData || []);
       } catch (err) {
-        console.error('[useResetPasswordData] Error:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch reset password data'));
       } finally {
         setLoading(false);

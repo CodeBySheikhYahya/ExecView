@@ -10,10 +10,6 @@ interface RedeemListProps {
 }
 
 export default function RedeemList({ data }: RedeemListProps) {
-  console.log('[RedeemList] ===== REDEEM LIST RENDER =====');
-  console.log('[RedeemList] Received data array length:', data.length);
-  console.log('[RedeemList] Data IDs:', data.map(item => item.id));
-  console.log('[RedeemList] ===============================');
   const router = useRouter();
 
   const formatDate = (dateString: string | null) => {

@@ -66,16 +66,18 @@ export function useRechargeData(selectedTab: TabStatus, teamId: string | null = 
   const [data, setData] = useState<RechargeRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [totalAmount, setTotalAmount] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchData() {
-      console.log('[useRechargeData] Fetching data - selectedTab:', selectedTab, 'teamId:', teamId);
       try {
         setLoading(true);
         
         let query = supabaseRead
           .from('recharge_requests')
-          .select(`
+          .select(
+            `
             *,
             players!player_id (
               fullname,
@@ -87,7 +89,9 @@ export function useRechargeData(selectedTab: TabStatus, teamId: string | null = 
               payment_method,
               payment_icon
             )
-          `);
+          `,
+            { count: 'exact' }
+          );
 
         if (selectedTab === 'Pending') {
           // Include all pending statuses
@@ -98,7 +102,6 @@ export function useRechargeData(selectedTab: TabStatus, teamId: string | null = 
             RechargeProcessStatus.OPERATION, // "3"
             RechargeProcessStatus.FINANCE_CONFIRMED, // "5"
           ];
-          console.log('[useRechargeData] Pending statuses:', pendingStatuses);
           query = query.in('process_status', pendingStatuses);
         } else if (selectedTab === 'Completed') {
           query = query.eq('process_status', RechargeProcessStatus.COMPLETED); // "4"
@@ -107,39 +110,28 @@ export function useRechargeData(selectedTab: TabStatus, teamId: string | null = 
         }
 
         if (teamId) {
-          console.log('[useRechargeData] Applying team_id filter:', teamId);
           query = query.eq('team_id', teamId);
-        } else {
-          console.log('[useRechargeData] No team_id filter (showing all teams)');
         }
 
-        const { data: rechargeData, error: fetchError } = await query
+        const { data: rechargeData, error: fetchError, count } = await query
           .order('created_at', { ascending: false });
 
         if (fetchError) {
-          console.error('[useRechargeData] Query error:', fetchError);
           throw fetchError;
         }
 
         const dataCount = rechargeData?.length || 0;
-        console.log('[useRechargeData] ===== RECHARGE DATA COUNT =====');
-        console.log('[useRechargeData] Total records fetched from DB:', dataCount);
-        console.log('[useRechargeData] Status tab:', selectedTab);
-        console.log('[useRechargeData] Team ID filter:', teamId || 'ALL (no filter)');
-        console.log('[useRechargeData] =================================');
-        
-        if (rechargeData && rechargeData.length > 0) {
-          console.log('[useRechargeData] Sample record team_id:', rechargeData[0].team_id);
-          console.log('[useRechargeData] Sample record team_code:', rechargeData[0].players?.teams?.team_code);
-          console.log('[useRechargeData] First record ID:', rechargeData[0].id);
-          console.log('[useRechargeData] Last record ID:', rechargeData[rechargeData.length - 1].id);
-        }
-
-        console.log('[useRechargeData] Setting data array with', dataCount, 'items');
         setData(rechargeData || []);
-        console.log('[useRechargeData] Data set complete');
+        setTotalCount(count ?? dataCount);
+        
+        // Calculate total amount (sum of amount + bonus_amount)
+        const total = (rechargeData || []).reduce((sum, item) => {
+          const amount = parseFloat(String(item.amount || "0"));
+          const bonusAmount = parseFloat(String(item.bonus_amount || "0"));
+          return sum + amount + bonusAmount;
+        }, 0);
+        setTotalAmount(total);
       } catch (err) {
-        console.error('[useRechargeData] Error:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch recharge data'));
       } finally {
         setLoading(false);
@@ -149,6 +141,6 @@ export function useRechargeData(selectedTab: TabStatus, teamId: string | null = 
     fetchData();
   }, [selectedTab, teamId]);
 
-  return { data, loading, error };
+  return { data, loading, error, totalCount, totalAmount };
 }
 

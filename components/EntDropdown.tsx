@@ -1,6 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Modal, ScrollView, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import {
+  Modal,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
@@ -18,9 +25,9 @@ export default function EntDropdown({ ents, selectedEnt, onEntChange }: EntDropd
       <TouchableOpacity
         style={styles.dropdownButton}
         onPress={() => setIsOpen(true)}
-        activeOpacity={0.8}>
+        activeOpacity={0.85}>
         <ThemedText style={styles.dropdownButtonText}>{selectedEnt}</ThemedText>
-        <Ionicons name="chevron-down" size={18} color="#6b7280" />
+        <Ionicons name="chevron-down" size={16} color="#6b7280" />
       </TouchableOpacity>
 
       <Modal
@@ -32,7 +39,7 @@ export default function EntDropdown({ ents, selectedEnt, onEntChange }: EntDropd
           <ThemedView style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <ThemedView style={styles.modalContent}>
-                <ScrollView contentContainerStyle={styles.listContent}>
+                <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
                   {ents.map((ent, idx) => (
                     <TouchableOpacity
                       key={ent}
@@ -75,23 +82,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    borderRadius: 10,
+    borderRadius: 12,
     backgroundColor: '#ffffff',
-    minWidth: 120,
+    minWidth: 130,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
-    elevation: 1,
+    elevation: 2,
   },
   dropdownButtonText: {
     fontSize: 15,
     color: '#111827',
-    fontWeight: '600',
+    fontWeight: '700',
     letterSpacing: 0.2,
   },
   modalOverlay: {
@@ -136,7 +143,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   dropdownItemSelected: {
-    backgroundColor: '#f0f9ff',
+    backgroundColor: '#eef5ff',
   },
   dropdownItemText: {
     fontSize: 16,

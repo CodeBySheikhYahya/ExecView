@@ -61,7 +61,6 @@ export function useRedeemDetail(id: string) {
 
       try {
         setLoading(true);
-        console.log('[useRedeemDetail] Fetching redeem detail for ID:', id);
 
         const { data: redeemData, error: fetchError } = await supabaseRead
           .from('redeem_requests')
@@ -102,13 +101,8 @@ export function useRedeemDetail(id: string) {
           .single();
 
         if (fetchError) {
-          console.error('[useRedeemDetail] Query error:', fetchError);
           throw fetchError;
         }
-
-        console.log('[useRedeemDetail] ===== REDEEM DETAIL =====');
-        console.log('[useRedeemDetail] Full API Response:', JSON.stringify(redeemData, null, 2));
-        console.log('[useRedeemDetail] ===========================');
 
         const dataWithStatus = {
           ...redeemData,
@@ -117,7 +111,6 @@ export function useRedeemDetail(id: string) {
 
         setData(dataWithStatus as any);
       } catch (err) {
-        console.error('[useRedeemDetail] Error:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch redeem detail'));
       } finally {
         setLoading(false);

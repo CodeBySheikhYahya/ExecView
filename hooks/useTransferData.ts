@@ -51,7 +51,6 @@ export function useTransferData(selectedTab: TabStatus, teamId: string | null = 
 
   useEffect(() => {
     async function fetchData() {
-      console.log('[useTransferData] Fetching data - selectedTab:', selectedTab, 'teamId:', teamId);
       try {
         setLoading(true);
         
@@ -90,24 +89,18 @@ export function useTransferData(selectedTab: TabStatus, teamId: string | null = 
           .eq('process_status', statusFilter);
 
         if (teamId) {
-          console.log('[useTransferData] Applying team_id filter:', teamId);
           query = query.eq('team_id', teamId);
-        } else {
-          console.log('[useTransferData] No team_id filter (showing all teams)');
         }
 
         const { data: transferData, error: fetchError } = await query
           .order('created_at', { ascending: false });
 
         if (fetchError) {
-          console.error('[useTransferData] Query error:', fetchError);
           throw fetchError;
         }
 
-        console.log('[useTransferData] Fetched', transferData?.length || 0, 'records');
         setData(transferData || []);
       } catch (err) {
-        console.error('[useTransferData] Error:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch transfer data'));
       } finally {
         setLoading(false);

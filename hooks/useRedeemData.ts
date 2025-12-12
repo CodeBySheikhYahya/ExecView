@@ -58,10 +58,10 @@ export function useRedeemData(selectedTab: TabStatus, teamId: string | null = nu
   const [data, setData] = useState<RedeemRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [totalAmount, setTotalAmount] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchData() {
-      console.log('[useRedeemData] Fetching data - selectedTab:', selectedTab, 'teamId:', teamId);
       try {
         setLoading(true);
         
@@ -85,7 +85,6 @@ export function useRedeemData(selectedTab: TabStatus, teamId: string | null = nu
             RedeemProcessStatus.FINANCE, // "2"
             RedeemProcessStatus.FINANCE_PARTIALLY_PAID, // "4"
           ];
-          console.log('[useRedeemData] Pending statuses:', pendingStatuses);
           query = query.in('process_status', pendingStatuses);
         } else if (selectedTab === 'Completed') {
           query = query.eq('process_status', RedeemProcessStatus.COMPLETED); // "5"
@@ -102,37 +101,25 @@ export function useRedeemData(selectedTab: TabStatus, teamId: string | null = nu
         }
 
         if (teamId) {
-          console.log('[useRedeemData] Applying team_id filter:', teamId);
           query = query.eq('team_id', teamId);
-        } else {
-          console.log('[useRedeemData] No team_id filter (showing all teams)');
         }
 
         const { data: redeemData, error: fetchError } = await query
           .order('created_at', { ascending: false });
 
         if (fetchError) {
-          console.error('[useRedeemData] Query error:', fetchError);
           throw fetchError;
         }
 
-        const dataCount = redeemData?.length || 0;
-        console.log('[useRedeemData] ===== REDEEM DATA COUNT =====');
-        console.log('[useRedeemData] Total records fetched from DB:', dataCount);
-        console.log('[useRedeemData] Status tab:', selectedTab);
-        console.log('[useRedeemData] Team ID filter:', teamId || 'ALL (no filter)');
-        console.log('[useRedeemData] ==============================');
-        
-        if (redeemData && redeemData.length > 0) {
-          console.log('[useRedeemData] First record ID:', redeemData[0].id);
-          console.log('[useRedeemData] Last record ID:', redeemData[redeemData.length - 1].id);
-        }
-
-        console.log('[useRedeemData] Setting data array with', dataCount, 'items');
         setData(redeemData || []);
-        console.log('[useRedeemData] Data set complete');
+        
+        // Calculate total amount (sum of total_amount)
+        const total = (redeemData || []).reduce((sum, item) => {
+          const totalAmount = parseFloat(String(item.total_amount || "0"));
+          return sum + totalAmount;
+        }, 0);
+        setTotalAmount(total);
       } catch (err) {
-        console.error('[useRedeemData] Error:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch redeem data'));
       } finally {
         setLoading(false);
@@ -142,6 +129,6 @@ export function useRedeemData(selectedTab: TabStatus, teamId: string | null = nu
     fetchData();
   }, [selectedTab, teamId]);
 
-  return { data, loading, error };
+  return { data, loading, error, totalAmount };
 }
 

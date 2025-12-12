@@ -10,6 +10,8 @@ import StatusTabs from '@/components/StatusTabs';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import TransferList from '@/components/TransferList';
+import { useDailyRechargeTotal } from '@/hooks/useDailyRechargeTotal';
+import { useDailyRedeemTotal } from '@/hooks/useDailyRedeemTotal';
 import { useEnts } from '@/hooks/useEnts';
 import { useNewAccountData } from '@/hooks/useNewAccountData';
 import { usePendingCount } from '@/hooks/usePendingCount';
@@ -41,20 +43,15 @@ export default function RechargeScreen() {
   // Convert ENT to team_id when ENT changes
   useEffect(() => {
     async function updateTeamId() {
-      console.log('[RechargeScreen] ENT changed:', selectedEnt);
       setTeamIdLoading(true);
       try {
         if (selectedEnt === 'ALL') {
-          console.log('[RechargeScreen] Setting teamId to null (ALL selected)');
           setTeamId(null);
         } else {
-          console.log('[RechargeScreen] Fetching teamId for ENT:', selectedEnt);
           const id = await getTeamId(selectedEnt);
-          console.log('[RechargeScreen] Received teamId:', id);
           setTeamId(id);
         }
       } catch (error) {
-        console.error('[RechargeScreen] Error fetching team ID:', error);
         setTeamId(null);
       } finally {
         setTeamIdLoading(false);
@@ -62,26 +59,19 @@ export default function RechargeScreen() {
     }
     updateTeamId();
   }, [selectedEnt]);
-
-  // Log when teamId changes
-  useEffect(() => {
-    console.log('[RechargeScreen] teamId state updated:', teamId);
-  }, [teamId]);
   
   // Fetch pending count for current activity type
   const { count: pendingCount, loading: pendingCountLoading } = usePendingCount(selectedTab, selectedEnt);
   
-  useEffect(() => {
-    console.log('[RechargeScreen] ===== PENDING COUNT UPDATE =====');
-    console.log('[RechargeScreen] pendingCount:', pendingCount);
-    console.log('[RechargeScreen] pendingCountLoading:', pendingCountLoading);
-    console.log('[RechargeScreen] selectedTab:', selectedTab);
-    console.log('[RechargeScreen] selectedEnt:', selectedEnt);
-    console.log('[RechargeScreen] ==================================');
-  }, [pendingCount, pendingCountLoading, selectedTab, selectedEnt]);
-  
   // Fetch data based on selected tab
   const rechargeData = useRechargeData(selectedStatus, teamId);
+  
+  // Fetch daily recharge total (only when Recharge tab is selected)
+  const dailyRechargeTotal = useDailyRechargeTotal({ teamId });
+  
+  // Fetch daily redeem total (only when Redeem tab is selected)
+  const dailyRedeemTotal = useDailyRedeemTotal({ teamId });
+  
   const redeemData = useRedeemData(selectedStatus, teamId);
   const transferData = useTransferData(selectedStatus, teamId);
   const resetPasswordData = useResetPasswordData(selectedResetPasswordStatus, teamId);
@@ -115,11 +105,31 @@ export default function RechargeScreen() {
         );
       }
       return (
-        <RequestList
-          data={rechargeData.data}
-          showStatus={selectedStatus === 'Pending' || selectedStatus === 'Rejected'}
-          showCompletedTime={selectedStatus === 'Completed'}
-        />
+        <View style={styles.rechargeContainer}>
+          {/* Daily Recharge Total Display */}
+          <View style={styles.totalContainer}>
+            <ThemedText style={styles.totalLabel}>
+              {selectedEnt === 'ALL' ? 'RECHARGE (ALL ENT)' : `RECHARGE (${selectedEnt})`}
+            </ThemedText>
+            {dailyRechargeTotal.loading ? (
+              <ActivityIndicator size="small" style={styles.totalLoading} />
+            ) : dailyRechargeTotal.error ? (
+              <ThemedText style={styles.totalError}>Error loading total</ThemedText>
+            ) : (
+              <ThemedText style={styles.totalAmount}>
+                {dailyRechargeTotal.total !== null 
+                  ? `$${dailyRechargeTotal.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  : '$0.00'}
+              </ThemedText>
+            )}
+          </View>
+          
+          <RequestList
+            data={rechargeData.data}
+            showStatus={selectedStatus === 'Pending' || selectedStatus === 'Rejected'}
+            showCompletedTime={selectedStatus === 'Completed'}
+          />
+        </View>
       );
     }
 
@@ -139,7 +149,29 @@ export default function RechargeScreen() {
           </ThemedView>
         );
       }
-      return <RedeemList data={redeemData.data} />;
+      return (
+        <View style={styles.rechargeContainer}>
+          {/* Daily Redeem Total Display */}
+          <View style={styles.totalContainer}>
+            <ThemedText style={styles.totalLabel}>
+              {selectedEnt === 'ALL' ? 'REDEEM (ALL ENT)' : `REDEEM (${selectedEnt})`}
+            </ThemedText>
+            {dailyRedeemTotal.loading ? (
+              <ActivityIndicator size="small" style={styles.totalLoading} />
+            ) : dailyRedeemTotal.error ? (
+              <ThemedText style={styles.totalError}>Error loading total</ThemedText>
+            ) : (
+              <ThemedText style={styles.totalAmount}>
+                {dailyRedeemTotal.total !== null 
+                  ? `$${dailyRedeemTotal.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  : '$0.00'}
+              </ThemedText>
+            )}
+          </View>
+          
+          <RedeemList data={redeemData.data} />
+        </View>
+      );
     }
 
     if (selectedTab === 'Transfer') {
@@ -287,6 +319,38 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     fontSize: 16,
+  },
+  rechargeContainer: {
+    flex: 1,
+  },
+  totalContainer: {
+    backgroundColor: '#F5F5F5',
+    padding: 16,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  totalLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 8,
+  },
+  totalAmount: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#007AFF',
+  },
+  totalLoading: {
+    marginTop: 8,
+  },
+  totalError: {
+    fontSize: 14,
+    color: 'red',
+    marginTop: 8,
   },
 });
 

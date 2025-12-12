@@ -3,13 +3,22 @@ import { AppHeader } from '@/components/AppHeader';
 import EntDropdown from '@/components/EntDropdown';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useDailyBonusTotal } from '@/hooks/useDailyBonusTotal';
+import { useDailyHourlyAvgRecharge } from '@/hooks/useDailyHourlyAvgRecharge';
 import { useDailyRechargeTotal } from '@/hooks/useDailyRechargeTotal';
 import { useDailyRedeemTotal } from '@/hooks/useDailyRedeemTotal';
+import { useDailyUniqueUsers } from '@/hooks/useDailyUniqueUsers';
 import { useEnts } from '@/hooks/useEnts';
+import { useMonthBonusTotal } from '@/hooks/useMonthBonusTotal';
+import { useMonthHourlyAvgRecharge } from '@/hooks/useMonthHourlyAvgRecharge';
 import { useMonthRechargeTotal } from '@/hooks/useMonthRechargeTotal';
 import { useMonthRedeemTotal } from '@/hooks/useMonthRedeemTotal';
+import { useMonthUniqueUsers } from '@/hooks/useMonthUniqueUsers';
+import { useWeekBonusTotal } from '@/hooks/useWeekBonusTotal';
+import { useWeekHourlyAvgRecharge } from '@/hooks/useWeekHourlyAvgRecharge';
 import { useWeekRechargeTotal } from '@/hooks/useWeekRechargeTotal';
 import { useWeekRedeemTotal } from '@/hooks/useWeekRedeemTotal';
+import { useWeekUniqueUsers } from '@/hooks/useWeekUniqueUsers';
 import { getTeamId } from '@/utils/team-helper';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
@@ -99,17 +108,26 @@ export default function DashboardScreen() {
   // Daily totals (7am-7am) same as Activity page
   const dailyRechargeTotal = useDailyRechargeTotal({ teamId });
   const dailyRedeemTotal = useDailyRedeemTotal({ teamId });
+  const dailyBonusTotal = useDailyBonusTotal({ teamId });
+  const dailyUniqueUsers = useDailyUniqueUsers({ teamId });
+  const dailyHourlyAvgRecharge = useDailyHourlyAvgRecharge({ teamId });
   const weekRechargeTotal = useWeekRechargeTotal({ teamId });
   const weekRedeemTotal = useWeekRedeemTotal({ teamId });
+  const weekBonusTotal = useWeekBonusTotal({ teamId });
+  const weekUniqueUsers = useWeekUniqueUsers({ teamId });
+  const weekHourlyAvgRecharge = useWeekHourlyAvgRecharge({ teamId });
   const monthRechargeTotal = useMonthRechargeTotal({ teamId });
   const monthRedeemTotal = useMonthRedeemTotal({ teamId });
+  const monthBonusTotal = useMonthBonusTotal({ teamId });
+  const monthUniqueUsers = useMonthUniqueUsers({ teamId });
+  const monthHourlyAvgRecharge = useMonthHourlyAvgRecharge({ teamId });
 
   const currentTotals =
     range === 'Day'
-      ? { recharge: dailyRechargeTotal, redeem: dailyRedeemTotal }
+      ? { recharge: dailyRechargeTotal, redeem: dailyRedeemTotal, bonus: dailyBonusTotal, uniqueUsers: dailyUniqueUsers, hourlyAvgRecharge: dailyHourlyAvgRecharge }
       : range === 'Week'
-      ? { recharge: weekRechargeTotal, redeem: weekRedeemTotal }
-      : { recharge: monthRechargeTotal, redeem: monthRedeemTotal };
+      ? { recharge: weekRechargeTotal, redeem: weekRedeemTotal, bonus: weekBonusTotal, uniqueUsers: weekUniqueUsers, hourlyAvgRecharge: weekHourlyAvgRecharge }
+      : { recharge: monthRechargeTotal, redeem: monthRedeemTotal, bonus: monthBonusTotal, uniqueUsers: monthUniqueUsers, hourlyAvgRecharge: monthHourlyAvgRecharge };
 
   // Calculate and format date range for display
   const dateRangeText = useMemo(() => {
@@ -227,6 +245,80 @@ export default function DashboardScreen() {
               )}
             </View>
           </View>
+
+          <View style={styles.cardsRow}>
+            <View style={styles.card}>
+              <ThemedText style={styles.cardLabel}>
+                {ent === 'ALL' ? 'HOLDING % (ALL ENT)' : `HOLDING % (${ent})`}
+              </ThemedText>
+              {currentTotals.recharge.loading || currentTotals.redeem.loading ? (
+                <ActivityIndicator size="small" />
+              ) : currentTotals.recharge.error || currentTotals.redeem.error ? (
+                <ThemedText style={styles.cardError}>Error</ThemedText>
+              ) : (
+                <ThemedText style={styles.cardValue}>
+                  {formatPercentage(
+                    calculateHoldingPercentage(
+                      currentTotals.recharge.total || 0,
+                      currentTotals.redeem.total || 0
+                    )
+                  )}
+                </ThemedText>
+              )}
+            </View>
+
+            <View style={styles.card}>
+              <ThemedText style={styles.cardLabel}>
+                {ent === 'ALL' ? 'BONUS % (ALL ENT)' : `BONUS % (${ent})`}
+              </ThemedText>
+              {currentTotals.bonus.loading || currentTotals.recharge.loading ? (
+                <ActivityIndicator size="small" />
+              ) : currentTotals.bonus.error || currentTotals.recharge.error ? (
+                <ThemedText style={styles.cardError}>Error</ThemedText>
+              ) : (
+                <ThemedText style={styles.cardValue}>
+                  {formatPercentage(
+                    calculateBonusPercentage(
+                      currentTotals.bonus.total || 0,
+                      currentTotals.recharge.total || 0
+                    )
+                  )}
+                </ThemedText>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.cardsRow}>
+            <View style={styles.card}>
+              <ThemedText style={styles.cardLabel}>
+                {ent === 'ALL' ? 'UNIQUE USERS (ALL ENT)' : `UNIQUE USERS (${ent})`}
+              </ThemedText>
+              {currentTotals.uniqueUsers.loading ? (
+                <ActivityIndicator size="small" />
+              ) : currentTotals.uniqueUsers.error ? (
+                <ThemedText style={styles.cardError}>Error</ThemedText>
+              ) : (
+                <ThemedText style={styles.cardValue}>
+                  {formatNumber(currentTotals.uniqueUsers.count || 0)}
+                </ThemedText>
+              )}
+            </View>
+
+            <View style={styles.card}>
+              <ThemedText style={styles.cardLabel}>
+                {ent === 'ALL' ? 'HOURLY AVG RECHARGE (ALL ENT)' : `HOURLY AVG RECHARGE (${ent})`}
+              </ThemedText>
+              {currentTotals.hourlyAvgRecharge.loading ? (
+                <ActivityIndicator size="small" />
+              ) : currentTotals.hourlyAvgRecharge.error ? (
+                <ThemedText style={styles.cardError}>Error</ThemedText>
+              ) : (
+                <ThemedText style={styles.cardValue}>
+                  {formatCurrency(currentTotals.hourlyAvgRecharge.hourlyAvg || 0)}
+                </ThemedText>
+              )}
+            </View>
+          </View>
       </ScrollView>
       </ThemedView>
       <AppFooter />
@@ -237,6 +329,27 @@ export default function DashboardScreen() {
 function formatCurrency(amount: number): string {
   if (!Number.isFinite(amount)) return '$0.00';
   return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function calculateHoldingPercentage(recharge: number, redeem: number): number {
+  if (!Number.isFinite(recharge) || recharge === 0) return 0;
+  const holding = recharge - redeem;
+  return (holding / recharge) * 100;
+}
+
+function calculateBonusPercentage(bonus: number, recharge: number): number {
+  if (!Number.isFinite(recharge) || recharge === 0) return 0;
+  return (bonus / recharge) * 100;
+}
+
+function formatPercentage(percentage: number): string {
+  if (!Number.isFinite(percentage)) return '0.00%';
+  return `${percentage.toFixed(2)}%`;
+}
+
+function formatNumber(count: number): string {
+  if (!Number.isFinite(count)) return '0';
+  return count.toLocaleString('en-US');
 }
 
 const styles = StyleSheet.create({

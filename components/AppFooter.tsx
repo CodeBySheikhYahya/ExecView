@@ -3,7 +3,6 @@ import { usePathname, useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 const navItems = [
@@ -17,43 +16,51 @@ export function AppFooter() {
   const router = useRouter();
   const pathname = usePathname();
   const colorScheme = useColorScheme();
-  const activeColor = Colors[colorScheme ?? 'light'].tint;
-  const inactiveColor = '#6b7280';
+  const activeColor = '#ffffff'; // white icon for active tab
+  const inactiveColor = '#e5e7eb'; // light icon for inactive tabs
 
   return (
-    <View style={styles.container}>
-      {navItems.map((item) => {
-        const isActive = pathname === item.route;
-        return (
-          <TouchableOpacity
-            key={item.route}
-            style={styles.navItem}
-            onPress={() => router.replace(item.route)}>
-            <Ionicons
-              name={item.icon as any}
-              size={22}
-              color={isActive ? activeColor : inactiveColor}
-            />
-          </TouchableOpacity>
-        );
-      })}
+    <View style={styles.wrapper}>
+      <View style={styles.container}>
+        {navItems.map((item) => {
+          const isActive = pathname === item.route;
+          return (
+            <TouchableOpacity
+              key={item.route}
+              style={styles.navItem}
+              // Cast is safe here because routes are known, static strings
+              onPress={() => router.replace(item.route as any)}>
+              <Ionicons
+                name={item.icon as any}
+                size={22}
+                color={isActive ? activeColor : inactiveColor}
+              />
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    backgroundColor: '#ffffff', // white strip under the purple bar
+  },
   container: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    backgroundColor: '#ffffff',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundImage: 'linear-gradient(90deg,rgb(99, 102, 241), rgb(179, 103, 255))',
+    // backgroundColor: '#5b21b6', // solid purple bar like the design
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
   },
   navItem: {
-    padding: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
 });
 

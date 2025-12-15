@@ -35,19 +35,19 @@ export function AppHeader({ title }: Props) {
       </ThemedText>
       <View>
         <TouchableOpacity onPress={() => setOpen((prev) => !prev)} activeOpacity={0.8}>
-          <LinearGradient
-            colors={['#7c3aed', '#2563eb']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.avatar}>
-            <ThemedText style={styles.avatarText}>{initials}</ThemedText>
-          </LinearGradient>
+        <LinearGradient
+          colors={['#c084fc', '#6366f1']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.avatar}>
+          <ThemedText style={styles.avatarText}>{initials}</ThemedText>
+        </LinearGradient>
         </TouchableOpacity>
         {open && (
           <LinearGradient
-            colors={['#7c3aed', '#2563eb']}
+            colors={['#c084fc', '#6366f1']}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            end={{ x: 1, y: 0 }}
             style={styles.dropdown}>
             <ThemedText style={styles.dropdownName}>
               {user?.email || 'User'}

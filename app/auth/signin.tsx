@@ -1,6 +1,6 @@
+import { GradientBackground } from '@/GradientBackground';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -69,85 +69,88 @@ export default function SignInScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <View style={styles.content}>
-          <View style={styles.logoWrapper}>
-            <Image
-              source={require('@/assets/images/logo.png')}
-              style={styles.logo}
-              contentFit="contain"
-            />
-            <ThemedText type="title" style={styles.brand}>
-              Techmile's Executive
-            </ThemedText>
-            <ThemedText style={styles.subtitle}>Sign in to continue</ThemedText>
-          </View>
-
-          <View style={styles.form}>
-            <View style={[styles.inputShell, { borderColor }]}>
-              <Ionicons name="mail-outline" size={18} color="#1f3c88" style={styles.icon} />
-              <TextInput
-                style={[styles.input, styles.inputTransparent, { color: '#0b1a3a' }]}
-                placeholder="Email"
-                placeholderTextColor={placeholderColor}
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="email-address"
-                editable={!isLoading}
-                returnKeyType="next"
+    <GradientBackground>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled">
+          <View style={styles.content}>
+            <View style={styles.logoWrapper}>
+              <Image
+                source={require('@/assets/images/logo.png')}
+                style={styles.logo}
+                contentFit="contain"
               />
+              <ThemedText type="title" style={styles.brand}>
+                Techmile's Executive
+              </ThemedText>
+              <ThemedText style={styles.subtitle}>Sign in to continue</ThemedText>
             </View>
 
-            <View style={[styles.inputShell, { borderColor }]}>
-              <Ionicons name="lock-closed-outline" size={18} color="#1f3c88" style={styles.icon} />
-              <TextInput
-                style={[styles.input, styles.inputTransparent, { color: '#0b1a3a' }]}
-                placeholder="Password"
-                placeholderTextColor={placeholderColor}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!isLoading}
-                onSubmitEditing={handleSignIn}
-                returnKeyType="go"
-              />
-              <TouchableOpacity
-                onPress={() => setShowPassword((prev) => !prev)}
-                style={styles.eyeButton}>
-                <Ionicons
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                  size={18}
-                  color="#1f3c88"
+            <View style={styles.form}>
+              <View style={[styles.inputShell, { borderColor }]}>
+                <Ionicons name="mail-outline" size={18} color="#1f3c88" style={styles.icon} />
+                <TextInput
+                  style={[styles.input, styles.inputTransparent, { color: '#0b1a3a' }]}
+                  placeholder="Email"
+                  placeholderTextColor={placeholderColor}
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  editable={!isLoading}
+                  returnKeyType="next"
                 />
+              </View>
+
+              <View style={[styles.inputShell, { borderColor }]}>
+                <Ionicons name="lock-closed-outline" size={18} color="#1f3c88" style={styles.icon} />
+                <TextInput
+                  style={[styles.input, styles.inputTransparent, { color: '#0b1a3a' }]}
+                  placeholder="Password"
+                  placeholderTextColor={placeholderColor}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!isLoading}
+                  onSubmitEditing={handleSignIn}
+                  returnKeyType="go"
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword((prev) => !prev)}
+                  style={styles.eyeButton}>
+                  <Ionicons
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={18}
+                    color="#1f3c88"
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={styles.buttonWrapper}
+                onPress={handleSignIn}
+                disabled={isLoading}>
+                <View style={[styles.button, isLoading && styles.buttonDisabled]}>
+                  <ThemedText style={styles.buttonText}>
+                    {isLoading ? 'Signing in...' : 'Login'}
+                  </ThemedText>
+                </View>
               </TouchableOpacity>
+
+              {!!errorMessage && (
+                <ThemedText style={styles.errorText}>{errorMessage}</ThemedText>
+              )}
             </View>
-
-            <TouchableOpacity style={styles.buttonWrapper} onPress={handleSignIn} disabled={isLoading}>
-              <LinearGradient
-                colors={['#4b6cb7', '#182848']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.button, isLoading && styles.buttonDisabled]}>
-                <ThemedText style={styles.buttonText}>
-                  {isLoading ? 'Signing in...' : 'Login'}
-                </ThemedText>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            {!!errorMessage && (
-              <ThemedText style={styles.errorText}>{errorMessage}</ThemedText>
-            )}
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </GradientBackground>
   );
 }
 
@@ -159,14 +162,14 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     padding: 32,
-    backgroundColor: '#ffffff',
+    backgroundColor: 'transparent',
   },
   content: {
     width: '100%',
     maxWidth: 360,
     alignSelf: 'center',
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
@@ -184,13 +187,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 24,
     fontWeight: '700',
-    color: '#0b1a3a',
+    color: '#ffffff',
   },
   subtitle: {
     textAlign: 'center',
-    opacity: 0.65,
+    opacity: 0.9,
     fontSize: 14,
-    color: '#64748b',
+    color: '#f5f5ff',
   },
   form: {
     gap: 16,
@@ -226,12 +229,15 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   buttonWrapper: {
-    borderRadius: 10,
+    borderRadius: 999,
     overflow: 'hidden',
-    marginTop: 8,
+    marginTop: 0,
+    marginBottom: 24,
+    alignSelf: 'stretch',
   },
   button: {
-    paddingVertical: 14,
+    paddingVertical: 12,
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -239,7 +245,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonText: {
-    color: '#fff',
+    color: '#4b6cb7',
     fontSize: 16,
     fontWeight: '700',
   },

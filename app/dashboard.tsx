@@ -22,9 +22,8 @@ import { useWeekUniqueUsers } from '@/hooks/useWeekUniqueUsers';
 import { getTeamId } from '@/utils/team-helper';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-
 // Helper function to get daily date range (7am-7am window)
 type RangeOption = 'Day' | 'Week' | 'Month';
 
@@ -208,18 +207,32 @@ export default function DashboardScreen() {
           
           {/* Range tabs and ENT selector */}
           <View style={styles.topTabsRow}>
-            {(['Day', 'Week', 'Month'] as RangeOption[]).map((r) => (
-              <TouchableOpacity
-                key={r}
-                activeOpacity={0.8}
-                onPress={() => setRange(r)}
-                style={[styles.topTab, range === r && styles.topTabActive]}>
-                <ThemedText
-                  style={[styles.topTabText, range === r && styles.topTabTextActive]}>
-                  {r}
-                </ThemedText>
-              </TouchableOpacity>
-            ))}
+            {(['Day', 'Week', 'Month'] as RangeOption[]).map((r) => {
+              const isActive = range === r;
+              return (
+                <TouchableOpacity
+                  key={r}
+                  activeOpacity={0.85}
+                  onPress={() => setRange(r)}
+                  style={styles.topTabTouchable}>
+                  {isActive ? (
+                    <LinearGradient
+                      colors={['#c084fc', '#6366f1']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.topTabActive}>
+                      <ThemedText style={[styles.topTabText, styles.topTabTextActive]}>
+                        {r}
+                      </ThemedText>
+                    </LinearGradient>
+                  ) : (
+                    <View style={styles.topTab}>
+                      <ThemedText style={styles.topTabText}>{r}</ThemedText>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
           <View style={styles.entRow}>
@@ -255,7 +268,8 @@ export default function DashboardScreen() {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.weekBarScroll}>
+              contentContainerStyle={styles.weekBarScroll}
+            >
               <View style={styles.weekBarChartWrap}>
                 <BarChart
                   data={weeklyBarData}
@@ -287,7 +301,7 @@ export default function DashboardScreen() {
           </View> */}
 
           {/* Monthly Balance (Redeem vs Recharge) */}
-          {/* <View style={styles.balanceCard}>
+           {/* <View style={styles.balanceCard}>
             <View style={styles.balanceHeader}>
               <ThemedText style={styles.balanceTitle}>Balance</ThemedText>
               <View style={styles.balanceLegend}>
@@ -549,24 +563,28 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
     gap: 10,
   },
+  topTabTouchable: {
+    flex: 1,
+  },
   topTab: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    backgroundColor: '#f3f4ff',
     alignItems: 'center',
     justifyContent: 'center',
   },
   topTabActive: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
-    shadowColor: '#2563eb',
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 999,
+    shadowColor: '#6366f1',
     shadowOpacity: 0.18,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   topTabText: {
     fontSize: 14,
@@ -705,7 +723,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   metricsSection: {
-    gap: 16,
+    gap: 10,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -726,13 +744,11 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
     elevation: 4,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
     marginBottom: 14,
   },
   cardGradient: {
     padding: 18,
-    minHeight: 120,
+    minHeight: 100,
     justifyContent: 'space-between',
   },
   cardHeader: {

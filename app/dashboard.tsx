@@ -26,6 +26,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 // Helper function to get daily date range (7am-7am window)
+type RangeOption = 'Day' | 'Week' | 'Month';
+
 function getDailyDateRange(): { startDate: Date; endDate: Date } {
   const now = new Date();
   const currentHour = now.getHours();
@@ -131,6 +133,36 @@ export default function DashboardScreen() {
       ? { recharge: weekRechargeTotal, redeem: weekRedeemTotal, bonus: weekBonusTotal, uniqueUsers: weekUniqueUsers, hourlyAvgRecharge: weekHourlyAvgRecharge }
       : { recharge: monthRechargeTotal, redeem: monthRedeemTotal, bonus: monthBonusTotal, uniqueUsers: monthUniqueUsers, hourlyAvgRecharge: monthHourlyAvgRecharge };
 
+  // Temporary mock data to mirror the “balance” style chart until backend exposes per-month series.
+  const monthlyPillData = useMemo(
+    () => [
+      { month: 'Jan', redeem: 52, recharge: 62 },
+      { month: 'Feb', redeem: 35, recharge: 58 },
+      { month: 'Mar', redeem: 48, recharge: 44 },
+      { month: 'Apr', redeem: 28, recharge: 60 },
+      { month: 'May', redeem: 40, recharge: 50 },
+      { month: 'Jun', redeem: 18, recharge: 72 },
+      { month: 'Jul', redeem: 30, recharge: 48 },
+      { month: 'Aug', redeem: 24, recharge: 66 },
+      { month: 'Sep', redeem: 42, recharge: 54 },
+    ],
+    []
+  );
+
+  const weeklyBarData = useMemo(() => {
+    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const rechargeHeights = [6, 9, 5, 8, 7, 10, 6];
+    const redeemHeights = [4, 6, 3, 5, 4, 7, 3];
+
+    const bars: { value: number; label: string; frontColor: string }[] = [];
+    labels.forEach((label, idx) => {
+      bars.push({ value: rechargeHeights[idx], label, frontColor: '#0f4f9e' });
+      bars.push({ value: redeemHeights[idx], label: '', frontColor: '#0ea5e9' });
+    });
+    return bars;
+  }, []);
+
+
   // Calculate and format date range for display
   const dateRangeText = useMemo(() => {
     let dateRange;
@@ -174,77 +206,120 @@ export default function DashboardScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}>
           
-          {/* Filters Section */}
-          <View style={styles.filtersCard}>
-            <View style={styles.filtersHeader}>
-              <Ionicons name="options-outline" size={20} color="#64748b" />
-              <ThemedText style={styles.sectionTitle}>Filters</ThemedText>
+          {/* Range tabs and ENT selector */}
+          <View style={styles.topTabsRow}>
+            {(['Day', 'Week', 'Month'] as RangeOption[]).map((r) => (
+              <TouchableOpacity
+                key={r}
+                activeOpacity={0.8}
+                onPress={() => setRange(r)}
+                style={[styles.topTab, range === r && styles.topTabActive]}>
+                <ThemedText
+                  style={[styles.topTabText, range === r && styles.topTabTextActive]}>
+                  {r}
+                </ThemedText>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <View style={styles.entRow}>
+            <View style={styles.dropdownWrapper}>
+              <EntDropdown
+                ents={entsLoading ? ['ALL'] : ents}
+                selectedEnt={ent}
+                onEntChange={setEnt}
+              />
             </View>
-            
-            <View style={styles.filterRow}>
-              <View style={styles.filterCol}>
-                <ThemedText style={styles.label}>Time Range</ThemedText>
-                <View style={styles.rangeButtons}>
-                  {(['Day', 'Week', 'Month'] as const).map((r) => (
-                    <TouchableOpacity
-                      key={r}
-                      activeOpacity={0.7}
-                      onPress={() => setRange(r)}
-                      style={[styles.rangeButton, range === r && styles.rangeButtonActive]}>
-                      {range === r && (
-                        <LinearGradient
-                          colors={['#2563eb', '#1d4ed8']}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 0 }}
-                          style={[StyleSheet.absoluteFill, { borderRadius: 10 }]}
-                        />
-                      )}
-                      <ThemedText
-                        style={[
-                          styles.rangeButtonText,
-                          range === r && styles.rangeButtonTextActive,
-                        ]}>
-                        {r}
-                      </ThemedText>
-                    </TouchableOpacity>
-                  ))}
+          </View>
+          
+          {/* Status for ENT resolution */}
+          {teamLoading && (
+            <View style={styles.statusContainer}>
+              <ActivityIndicator size="small" color="#2563eb" />
+              <ThemedText style={styles.rangeHelper}>Resolving team...</ThemedText>
+            </View>
+          )}
+          {teamError && (
+            <View style={styles.errorContainer}>
+              <Ionicons name="alert-circle-outline" size={16} color="#dc2626" />
+              <ThemedText style={styles.cardError}>Team error: {teamError}</ThemedText>
+            </View>
+          )}
+
+          {/* Weekly Recharge vs Redeem (1 week) */}
+          {/* <View style={styles.weekBarCard}>
+            <View style={styles.weekBarHeader}>
+              <ThemedText style={styles.weekBarTitle}>Weekly Recharge vs Redeem</ThemedText>
+              <ThemedText style={styles.weekBarSubtitle}>Last 7 days</ThemedText>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.weekBarScroll}>
+              <View style={styles.weekBarChartWrap}>
+                <BarChart
+                  data={weeklyBarData}
+                  barWidth={12}
+                  spacing={10}
+                  roundedTop
+                  barBorderRadius={10}
+                  frontColor="#0f4f9e"
+                  yAxisThickness={0.5}
+                  xAxisThickness={0.5}
+                  xAxisLabelTextStyle={styles.weekBarAxisText}
+                  yAxisTextStyle={styles.weekBarAxisText}
+                  maxValue={12}
+                  yAxisLabelWidth={20}
+                  noOfSections={4}
+                />
+              </View>
+            </ScrollView>
+            <View style={styles.weekBarLegend}>
+              <View style={styles.legendRow}>
+                <View style={[styles.legendDot, { backgroundColor: '#0f4f9e' }]} />
+                <ThemedText style={styles.legendLabel}>Recharge</ThemedText>
+              </View>
+              <View style={styles.legendRow}>
+                <View style={[styles.legendDot, { backgroundColor: '#0ea5e9' }]} />
+                <ThemedText style={styles.legendLabel}>Redeem</ThemedText>
+              </View>
+            </View>
+          </View> */}
+
+          {/* Monthly Balance (Redeem vs Recharge) */}
+          {/* <View style={styles.balanceCard}>
+            <View style={styles.balanceHeader}>
+              <ThemedText style={styles.balanceTitle}>Balance</ThemedText>
+              <View style={styles.balanceLegend}>
+                <View style={styles.legendRow}>
+                  <View style={[styles.legendDot, { backgroundColor: '#f59e0b' }]} />
+                  <ThemedText style={styles.legendLabel}>Expenses</ThemedText>
+                </View>
+                <View style={styles.legendRow}>
+                  <View style={[styles.legendDot, { backgroundColor: '#ef4444' }]} />
+                  <ThemedText style={styles.legendLabel}>Income</ThemedText>
                 </View>
               </View>
             </View>
-            
-            <View style={styles.filterRow}>
-              <View style={styles.filterCol}>
-                <ThemedText style={styles.label}>ENT</ThemedText>
-                <EntDropdown
-                  ents={entsLoading ? ['ALL'] : ents}
-                  selectedEnt={ent}
-                  onEntChange={setEnt}
-                />
-              </View>
+            <View style={styles.pillChart}>
+              {monthlyPillData.map((item) => {
+                const maxHeight = 84;
+                const rechargeHeight = Math.max((item.recharge / 80) * maxHeight, 14);
+                const redeemHeight = Math.max((item.redeem / 80) * maxHeight, 14);
+                return (
+                  <View key={item.month} style={styles.pillColumn}>
+                    <View style={[styles.pillBarWrapper, { height: maxHeight }]}>
+                      <View style={[styles.pillBar, { height: rechargeHeight, backgroundColor: '#f59e0b' }]} />
+                    </View>
+                    <View style={[styles.pillBarWrapper, { height: maxHeight }]}>
+                      <View style={[styles.pillBar, { height: redeemHeight, backgroundColor: '#ef4444' }]} />
+                    </View>
+                    <ThemedText style={styles.pillMonth}>{item.month}</ThemedText>
+                  </View>
+                );
+              })}
             </View>
-            
-            {teamLoading && (
-              <View style={styles.statusContainer}>
-                <ActivityIndicator size="small" color="#2563eb" />
-                <ThemedText style={styles.rangeHelper}>Resolving team...</ThemedText>
-              </View>
-            )}
-            {teamError && (
-              <View style={styles.errorContainer}>
-                <Ionicons name="alert-circle-outline" size={16} color="#dc2626" />
-                <ThemedText style={styles.cardError}>Team error: {teamError}</ThemedText>
-              </View>
-            )}
-            
-            {/* Date Range Section - Commented out */}
-            {/* <View style={styles.dateRangeContainer}>
-              <View style={styles.dateRangeHeader}>
-                <Ionicons name="calendar-outline" size={14} color="#64748b" />
-                <ThemedText style={styles.dateRangeLabel}>Date Range ({range})</ThemedText>
-              </View>
-              <ThemedText style={styles.dateRangeText}>{dateRangeText}</ThemedText>
-            </View> */}
-          </View>
+          </View> */}
 
           {/* Metrics Cards */}
           <View style={styles.metricsSection}>
@@ -466,67 +541,108 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
     paddingBottom: 24,
-    gap: 24,
+    gap: 10,
+  },
+  topTabsRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingBottom: 6,
+    gap: 10,
+  },
+  topTab: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  topTabActive: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+    shadowColor: '#2563eb',
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  topTabText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  topTabTextActive: {
+    color: '#ffffff',
+  },
+  entRow: {
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+  },
+  dropdownWrapper: {
+    flex: 1,
   },
   filtersCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 20,
-    gap: 16,
+    borderRadius: 14,
+    padding: 16,
+    gap: 12,
     shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#e5e7eb',
   },
   filtersHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     color: '#0f172a',
     letterSpacing: -0.3,
   },
   filterRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   filterCol: {
     flex: 1,
-    gap: 8,
+    gap: 6,
   },
   rangeButtons: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
   },
   rangeButton: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderRadius: 10,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#f7f9fc',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
+    borderWidth: 1.2,
     borderColor: '#e2e8f0',
     overflow: 'hidden',
+    minHeight: 44,
   },
   rangeButtonActive: {
     borderColor: '#2563eb',
     shadowColor: '#2563eb',
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
   },
   rangeButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#64748b',
     zIndex: 1,
@@ -536,10 +652,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   label: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
     color: '#475569',
-    letterSpacing: 0.2,
+    letterSpacing: 0.4,
     textTransform: 'uppercase',
   },
   statusContainer: {
@@ -661,6 +777,129 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#dc2626',
     marginTop: 8,
+  },
+  balanceCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  balanceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  balanceTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  balanceLegend: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  pillChart: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginTop: 4,
+    gap: 8,
+  },
+  pillColumn: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  pillBarWrapper: {
+    width: 18,
+    borderRadius: 9,
+    backgroundColor: '#f8fafc',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 2,
+    paddingVertical: 2,
+    marginBottom: 2,
+  },
+  pillBar: {
+    width: 10,
+    borderRadius: 999,
+  },
+  pillMonth: {
+    fontSize: 11,
+    color: '#475569',
+    fontWeight: '600',
+    marginTop: -2,
+  },
+  weekBarCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  weekBarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  weekBarTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  weekBarSubtitle: {
+    fontSize: 12,
+    color: '#64748b',
+    fontWeight: '600',
+  },
+  weekBarAxisText: {
+    color: '#94a3b8',
+    fontSize: 10,
+  },
+  weekBarScroll: {
+    paddingHorizontal: 4,
+  },
+  weekBarChartWrap: {
+    minWidth: 460,
+    paddingRight: 8,
+  },
+  weekBarLegend: {
+    flexDirection: 'row',
+    gap: 14,
+    marginTop: 10,
+  },
+  legendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  legendLabel: {
+    flex: 1,
+    fontSize: 13,
+    color: '#334155',
+    fontWeight: '600',
+  },
+  legendValue: {
+    fontSize: 12,
+    color: '#475569',
+    fontWeight: '700',
   },
 });
 

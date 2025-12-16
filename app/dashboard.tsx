@@ -1,21 +1,25 @@
 import { AppFooter } from '@/components/AppFooter';
 import { AppHeader } from '@/components/AppHeader';
 import EntDropdown from '@/components/EntDropdown';
+import EntTimeChart from '@/components/EntTimeChart';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useDailyBonusTotal } from '@/hooks/useDailyBonusTotal';
 import { useDailyHourlyAvgRecharge } from '@/hooks/useDailyHourlyAvgRecharge';
+import { useDailyRechargeRedeemBuckets } from '@/hooks/useDailyRechargeRedeemBuckets';
 import { useDailyRechargeTotal } from '@/hooks/useDailyRechargeTotal';
 import { useDailyRedeemTotal } from '@/hooks/useDailyRedeemTotal';
 import { useDailyUniqueUsers } from '@/hooks/useDailyUniqueUsers';
 import { useEnts } from '@/hooks/useEnts';
 import { useMonthBonusTotal } from '@/hooks/useMonthBonusTotal';
 import { useMonthHourlyAvgRecharge } from '@/hooks/useMonthHourlyAvgRecharge';
+import { useMonthRechargeRedeemSeries } from '@/hooks/useMonthRechargeRedeemSeries';
 import { useMonthRechargeTotal } from '@/hooks/useMonthRechargeTotal';
 import { useMonthRedeemTotal } from '@/hooks/useMonthRedeemTotal';
 import { useMonthUniqueUsers } from '@/hooks/useMonthUniqueUsers';
 import { useWeekBonusTotal } from '@/hooks/useWeekBonusTotal';
 import { useWeekHourlyAvgRecharge } from '@/hooks/useWeekHourlyAvgRecharge';
+import { useWeekRechargeRedeemSeries } from '@/hooks/useWeekRechargeRedeemSeries';
 import { useWeekRechargeTotal } from '@/hooks/useWeekRechargeTotal';
 import { useWeekRedeemTotal } from '@/hooks/useWeekRedeemTotal';
 import { useWeekUniqueUsers } from '@/hooks/useWeekUniqueUsers';
@@ -111,16 +115,29 @@ export default function DashboardScreen() {
   // Daily totals (7am-7am) same as Activity page
   const dailyRechargeTotal = useDailyRechargeTotal({ teamId });
   const dailyRedeemTotal = useDailyRedeemTotal({ teamId });
+  const dailyBuckets = useDailyRechargeRedeemBuckets({
+    teamId,
+    intervalHours: 1,
+    enabled: range === 'Day',
+  });
   const dailyBonusTotal = useDailyBonusTotal({ teamId });
   const dailyUniqueUsers = useDailyUniqueUsers({ teamId });
   const dailyHourlyAvgRecharge = useDailyHourlyAvgRecharge({ teamId });
   const weekRechargeTotal = useWeekRechargeTotal({ teamId });
   const weekRedeemTotal = useWeekRedeemTotal({ teamId });
+  const weekSeries = useWeekRechargeRedeemSeries({
+    teamId,
+    enabled: range === 'Week',
+  });
   const weekBonusTotal = useWeekBonusTotal({ teamId });
   const weekUniqueUsers = useWeekUniqueUsers({ teamId });
   const weekHourlyAvgRecharge = useWeekHourlyAvgRecharge({ teamId });
   const monthRechargeTotal = useMonthRechargeTotal({ teamId });
   const monthRedeemTotal = useMonthRedeemTotal({ teamId });
+  const monthSeries = useMonthRechargeRedeemSeries({
+    teamId,
+    enabled: range === 'Month',
+  });
   const monthBonusTotal = useMonthBonusTotal({ teamId });
   const monthUniqueUsers = useMonthUniqueUsers({ teamId });
   const monthHourlyAvgRecharge = useMonthHourlyAvgRecharge({ teamId });
@@ -132,34 +149,7 @@ export default function DashboardScreen() {
       ? { recharge: weekRechargeTotal, redeem: weekRedeemTotal, bonus: weekBonusTotal, uniqueUsers: weekUniqueUsers, hourlyAvgRecharge: weekHourlyAvgRecharge }
       : { recharge: monthRechargeTotal, redeem: monthRedeemTotal, bonus: monthBonusTotal, uniqueUsers: monthUniqueUsers, hourlyAvgRecharge: monthHourlyAvgRecharge };
 
-  // Temporary mock data to mirror the “balance” style chart until backend exposes per-month series.
-  const monthlyPillData = useMemo(
-    () => [
-      { month: 'Jan', redeem: 52, recharge: 62 },
-      { month: 'Feb', redeem: 35, recharge: 58 },
-      { month: 'Mar', redeem: 48, recharge: 44 },
-      { month: 'Apr', redeem: 28, recharge: 60 },
-      { month: 'May', redeem: 40, recharge: 50 },
-      { month: 'Jun', redeem: 18, recharge: 72 },
-      { month: 'Jul', redeem: 30, recharge: 48 },
-      { month: 'Aug', redeem: 24, recharge: 66 },
-      { month: 'Sep', redeem: 42, recharge: 54 },
-    ],
-    []
-  );
-
-  const weeklyBarData = useMemo(() => {
-    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const rechargeHeights = [6, 9, 5, 8, 7, 10, 6];
-    const redeemHeights = [4, 6, 3, 5, 4, 7, 3];
-
-    const bars: { value: number; label: string; frontColor: string }[] = [];
-    labels.forEach((label, idx) => {
-      bars.push({ value: rechargeHeights[idx], label, frontColor: '#0f4f9e' });
-      bars.push({ value: redeemHeights[idx], label: '', frontColor: '#0ea5e9' });
-    });
-    return bars;
-  }, []);
+  // Temporary mock data for the old charts has been removed in favor of EntTimeChart.
 
 
   // Calculate and format date range for display
@@ -174,6 +164,46 @@ export default function DashboardScreen() {
     }
     return formatDateRange(dateRange.startDate, dateRange.endDate);
   }, [range]);
+
+  // Debug: log specific hourly buckets for the Day range (7–10 AM)
+  useEffect(() => {
+    if (range !== 'Day') return;
+    if (dailyBuckets.loading || dailyBuckets.error) return;
+
+    const targetHours = new Set([7, 8, 9]); // 7–8, 8–9, 9–10
+
+    const buckets = dailyBuckets.buckets
+      .map((b) => {
+        const startDate = new Date(b.bucketStart);
+        const hour = startDate.getHours();
+        return { hour, raw: b, startDate };
+      })
+      .filter((b) => targetHours.has(b.hour))
+      .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+
+    if (buckets.length === 0) return;
+
+    const series = buckets.map(({ hour, raw, startDate }) => {
+      const endDate = new Date(raw.bucketEnd);
+      const label = startDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        hour12: true,
+      });
+      return {
+        hour,
+        label,
+        start: raw.bucketStart,
+        end: raw.bucketEnd,
+        recharge: raw.rechargeTotal,
+        redeem: raw.redeemTotal,
+        localStart: startDate.toString(),
+        localEnd: endDate.toString(),
+      };
+    });
+
+    // eslint-disable-next-line no-console
+    console.log('[Dashboard Day 7-10AM]', { ent, teamId, series });
+  }, [range, ent, teamId, dailyBuckets.loading, dailyBuckets.error, dailyBuckets.buckets]);
 
   useEffect(() => {
     async function resolveTeam() {
@@ -206,6 +236,17 @@ export default function DashboardScreen() {
           showsVerticalScrollIndicator={false}>
           
           {/* Range tabs and ENT selector */}
+
+          <View style={styles.entRow}>
+            <View style={styles.dropdownWrapper}>
+              <EntDropdown
+                ents={entsLoading ? ['ALL'] : ents}
+                selectedEnt={ent}
+                onEntChange={setEnt}
+              />
+            </View>
+          </View>
+
           <View style={styles.topTabsRow}>
             {(['Day', 'Week', 'Month'] as RangeOption[]).map((r) => {
               const isActive = range === r;
@@ -235,15 +276,6 @@ export default function DashboardScreen() {
             })}
           </View>
 
-          <View style={styles.entRow}>
-            <View style={styles.dropdownWrapper}>
-              <EntDropdown
-                ents={entsLoading ? ['ALL'] : ents}
-                selectedEnt={ent}
-                onEntChange={setEnt}
-              />
-            </View>
-          </View>
           
           {/* Status for ENT resolution */}
           {teamLoading && (
@@ -259,46 +291,15 @@ export default function DashboardScreen() {
             </View>
           )}
 
-          {/* Weekly Recharge vs Redeem (1 week) */}
-          {/* <View style={styles.weekBarCard}>
-            <View style={styles.weekBarHeader}>
-              <ThemedText style={styles.weekBarTitle}>Weekly Recharge vs Redeem</ThemedText>
-              <ThemedText style={styles.weekBarSubtitle}>Last 7 days</ThemedText>
-            </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.weekBarScroll}
-            >
-              <View style={styles.weekBarChartWrap}>
-                <BarChart
-                  data={weeklyBarData}
-                  barWidth={12}
-                  spacing={10}
-                  roundedTop
-                  barBorderRadius={10}
-                  frontColor="#0f4f9e"
-                  yAxisThickness={0.5}
-                  xAxisThickness={0.5}
-                  xAxisLabelTextStyle={styles.weekBarAxisText}
-                  yAxisTextStyle={styles.weekBarAxisText}
-                  maxValue={12}
-                  yAxisLabelWidth={20}
-                  noOfSections={4}
-                />
-              </View>
-            </ScrollView>
-            <View style={styles.weekBarLegend}>
-              <View style={styles.legendRow}>
-                <View style={[styles.legendDot, { backgroundColor: '#0f4f9e' }]} />
-                <ThemedText style={styles.legendLabel}>Recharge</ThemedText>
-              </View>
-              <View style={styles.legendRow}>
-                <View style={[styles.legendDot, { backgroundColor: '#0ea5e9' }]} />
-                <ThemedText style={styles.legendLabel}>Redeem</ThemedText>
-              </View>
-            </View>
-          </View> */}
+          {/* ENT vs Time chart */}
+          <EntTimeChart
+            ents={entsLoading ? [] : ents}
+            selectedEnt={ent}
+            range={range}
+            buckets={dailyBuckets.buckets}
+            weekPoints={weekSeries.points}
+            monthPoints={monthSeries.points}
+          />
 
           {/* Monthly Balance (Redeem vs Recharge) */}
            {/* <View style={styles.balanceCard}>
@@ -568,7 +569,7 @@ const styles = StyleSheet.create({
   },
   topTab: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderRadius: 12,
     backgroundColor: '#f3f4ff',
     alignItems: 'center',
@@ -576,7 +577,7 @@ const styles = StyleSheet.create({
   },
   topTabActive: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 8,
     borderRadius: 999,
     shadowColor: '#6366f1',
     shadowOpacity: 0.18,
